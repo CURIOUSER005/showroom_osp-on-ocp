@@ -1,0 +1,182 @@
+= Accéder à OpenStack
+
+Depuis le *serveur bastion*, accédez au Plan de Contrôle :
+
+[source,bash,role=execute]
+----
+oc rsh -n openstack openstackclient
+----
+
+Sur le Plan de Contrôle, vérifiez les Services OpenStack :
+
+[source,bash,role=execute]
+----
+cd /home/cloud-admin
+openstack compute service list
+----
+
+.Exemple de sortie
+----
++--------------------------------------+----------------+-----------------------------------------+----------+---------+-------+----------------------------+
+| ID                                   | Binary         | Host                                    | Zone     | Status  | State | Updated At                 |
++--------------------------------------+----------------+-----------------------------------------+----------+---------+-------+----------------------------+
+| c47d732c-f80a-4254-b41a-b09834951b80 | nova-conductor | nova-cell0-conductor-0                  | internal | enabled | up    | 2025-02-28T15:38:02.000000 |
+| c095e410-ab45-4ac0-8031-3c1e2bfb0710 | nova-scheduler | nova-scheduler-0                        | internal | enabled | up    | 2025-02-28T15:37:55.000000 |
+| f76d1213-950c-4e47-85d1-5b63399311a5 | nova-conductor | nova-cell1-conductor-0                  | internal | enabled | up    | 2025-02-28T15:38:00.000000 |
+| 0b351943-84b8-4b45-9949-97ed87464f58 | nova-compute   | edpm-compute-0.ctlplane.aio.example.com | nova     | enabled | up    | 2025-02-28T15:38:04.000000 |
++--------------------------------------+----------------+-----------------------------------------+----------+---------+-------+----------------------------+
+----
+
+Vérifiez les réseaux OpenStack :
+
+[source,bash,role=execute]
+----
+openstack network agent list
+exit
+----
+
+.Exemple de sortie
+----
++--------------------------------------+----------------------+-----------------------------------------+-------------------+-------+-------+----------------+
+| ID                                   | Agent Type           | Host                                    | Availability Zone | Alive | State | Binary         |
++--------------------------------------+----------------------+-----------------------------------------+-------------------+-------+-------+----------------+
+| 6e137959-8a62-4f61-92ef-dbd328647614 | OVN Controller agent | edpm-compute-0.ctlplane.aio.example.com |                   | :-)   | UP    | ovn-controller |
++--------------------------------------+----------------------+-----------------------------------------+-------------------+-------+-------+----------------+
+----
+
+Les "cells" (cellule) dans Openstack sont un mécanisme de mise à l'échelle de l'architecture qui permet de diviser un déploiement Nova (le service de calcul d'OpenStack) en unités plus petites et gérables.
+Mappez les nœuds de calcul à la cellule de calcul à laquelle ils sont connectés :
+
+[source,bash,role=execute]
+----
+oc rsh nova-cell0-conductor-0 nova-manage cell_v2 discover_hosts --verbose
+----
+
+== Activer l'interface graphique Horizon
+
+Du bastion :
+
+[source,bash,role=execute]
+----
+oc patch openstackcontrolplanes/openstack-galera-network-isolation -p='[{"op": "replace", "path": "/spec/horizon/enabled", "value": true}]' --type json
+oc patch openstackcontrolplane/openstack-galera-network-isolation -p '{"spec": {"horizon": {"template": {"customServiceConfig": "USE_X_FORWARDED_HOST = False" }}}}' --type=merge
+----
+
+Vérifiez que les pods Horizon fonctionnent après l'avoir activé :
+
+[source,bash,role=execute]
+----
+oc get pods -n openstack
+----
+
+.Exemple de sortie:
+
+[source,bash,role=execute]
+----
+[...]
+glance-default-single-0                                           3/3     Running             0          7h3m
+horizon-5dbc7bd48c-hfxvw                                          0/1     Terminating         0          3s
+horizon-6bc6f585c5-c8bhn                                          0/1     ContainerCreating   0          2s
+horizon-84f6cc96d7-zhc4k                                          0/1     ContainerCreating   0          3s
+[...]
+----
+
+Obtenir la route pour accéder à Horizon
+
+[source,bash,role=execute]
+----
+ROUTE=$(oc get routes horizon  -o go-template='https://{{range .status.ingress}}{{.host}}{{end}}')
+echo $ROUTE
+----
+
+.Exemple de sortie
+----
+https://horizon-openstack.apps.86dgb.dynamic.redhatworkshops.io
+----
+
+Cliquez sur l'URL et connectez-vous avec le nom d'utilisateur `admin` et le mot de passe `openstack`
+
+== CREATION D'UN PREMIER INSTANCE 
+
+Accèdez au pod de gestion openstackclient
+
+[source,bash,role=execute]
+----
+oc rsh -n openstack openstackclient
+----
+
+Créer une image et des flavors
+[source,bash,role=execute]
+----
+export GATEWAY=192.168.123.1
+export PUBLIC_NETWORK_CIDR=192.168.123.1/24
+export PRIVATE_NETWORK_CIDR=192.168.100.0/24
+export PUBLIC_NET_START=192.168.123.91
+export PUBLIC_NET_END=192.168.123.99
+export DNS_SERVER=8.8.8.8
+openstack flavor create --ram 512 --disk 1 --vcpu 1 --public tiny
+curl -O -L https://github.com/cirros-dev/cirros/releases/download/0.6.2/cirros-0.6.2-x86_64-disk.img
+openstack image create cirros --container-format bare --disk-format qcow2 --public --file cirros-0.6.2-x86_64-disk.img
+----
+
+Générer une paire de clés ssh :
+[source,bash,role=execute]
+----
+ssh-keygen -m PEM -t rsa -b 2048 -f ~/.ssh/id_rsa_pem
+----
+
+Créer un réseau et la sécurité pour la machine virtuelle
+
+[source,bash,role=execute]
+----
+openstack keypair create --public-key ~/.ssh/id_rsa_pem.pub default
+openstack security group create basic
+openstack security group rule create basic --protocol tcp --dst-port 22:22 --remote-ip 0.0.0.0/0
+openstack security group rule create --protocol icmp basic
+openstack security group rule create --protocol udp --dst-port 53:53 basic
+openstack network create --external --provider-physical-network datacentre --provider-network-type flat public
+openstack network create --internal private
+openstack subnet create public-net \
+--subnet-range $PUBLIC_NETWORK_CIDR \
+--no-dhcp \
+--gateway $GATEWAY \
+--allocation-pool start=$PUBLIC_NET_START,end=$PUBLIC_NET_END \
+--network public
+openstack subnet create private-net \
+--subnet-range $PRIVATE_NETWORK_CIDR \
+--network private
+openstack router create vrouter
+openstack router set vrouter --external-gateway public
+openstack router add subnet vrouter private-net
+----
+
+Créer la machine virtuelle et une IP flottante
+
+[source,bash,role=execute]
+----
+openstack server create \
+    --flavor tiny --key-name default --network private --security-group basic \
+    --image cirros test-server
+openstack floating ip create public
+----
+
+Ajoutez l’IP flottante ci-dessus à la nouvelle machine virtuelle.
+
+[source,bash,role=execute]
+----
+openstack server add floating ip test-server $(openstack floating ip list -c "Floating IP Address" -f value)
+exit
+----
+
+Du bastion, accéder à la machine virtuelle.
+
+[source,bash,role=execute]
+----
+ssh cirros@<FLOATING_IP> (password is gocubsgo)
+----
+
+[source,bash,role=execute]
+----
+exit
+----
+

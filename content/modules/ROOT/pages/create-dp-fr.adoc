@@ -1,36 +1,36 @@
-= Configure the Data Plane
+= Configurer le plan de données
 
-Using a preconfigured yaml file(*files/osp-ng-dataplane-netconfig.yaml*) we will configure the topology for each data plane network.
+En utilisant un fichier yaml préconfiguré (*files/osp-ng-dataplane-netconfig.yaml*), nous allons configurer la topologie pour chaque réseau du plan de données.
 
-Change directory to the files:
+Changez de répertoire vers les fichiers:
 
 [source,bash,role=execute]
 ----
 cd ~/labrepo/content/files
 ----
 
-Apply the *network confguration*:
+Appliquez la *configuration réseau*:
 
 [source,bash,role=execute]
 ----
 oc apply -f osp-ng-dataplane-netconfig.yaml
 ----
 
-== Create VM for Dataplane
+== Créer une VM pour le plan de données
 
-Log out from the bastion so that we go back to the hypervisor machine:
+Déconnectez-vous du bastion pour revenir à la machine hyperviseur:
 
 [source,bash,role=execute]
 ----
 logout
 ----
 
-.Sample Output
+.Exemple de sortie
 ----
 [lab-user@hypervisor ~]#
-----
+---- 
 
-Create the *RHEL compute* on lab-user (*hypervisor*) server:
+Créez le noeud compute en machine virtuelle sur l'hyperviseur :
 
 [source,bash,role=execute]
 ----
@@ -51,16 +51,18 @@ virt-install --virt-type kvm --ram 16384 --vcpus 4 --cpu=host-passthrough --os-v
 virsh start osp-compute0
 ----
 
-=== Login to the Compute and Verify
+=== Connecter vous sur le noeud compute 
 
-Verify IP from 192.168.123.0/24
+Vérifiez l'adresse IP à partir de 192.168.123.0/24
 
 [source,bash,role=execute]
 ----
 watch virsh domifaddr osp-compute0 --source agent
 ----
 
-.Sample Output
+Il peut s'écouler quelques secondes avant que les adresses ips n'apparaissent 
+
+.Exemple de sortie
 [source,bash]
 ----
 Every 2.0s: virsh domifaddr osp-compute0 --source agent                                                                                                 hypervisor: Wed Apr 17 07:03:13 2024
@@ -75,19 +77,19 @@ Every 2.0s: virsh domifaddr osp-compute0 --source agent                         
  -          -                    ipv6         fe80::bfc0:e5db:a655:729f/64
 ----
 
-(CTRL + C to continue)
+(CTRL + C pour continuer)
 
 [source,bash,role=execute]
 ----
 virsh domifaddr osp-compute0 --source agent
 ----
 
-Use the IP assigned to `eth1` above in the next step.
+Utilisez l'adresse IP attribuée à `eth1` ci-dessus à l'étape suivante.
 
-=== Configure Ethernet Devices on New Compute
+=== Configurer les périphériques Ethernet sur le noeud compute.
 
-SSH to the new VM.
-There is no password.
+Connectez-vous en SSH à la nouvelle VM.
+Il n'y a pas de mot de passe.
 
 [source,bash,role=execute]
 ----
@@ -105,21 +107,21 @@ nmcli con add con-name "static-eth1" ifname eth1 type ethernet ip4 192.168.123.6
 nmcli con up "static-eth1"
 ----
 
-And log off VM
+Et déconnectez-vous de la VM
 
 [source,bash,role=execute]
 ----
 logout
 ----
 
-Snapshot the Compute Server
+Capturer un instantané du noeud compute
 
 [source,bash,role=execute]
 ----
 virsh snapshot-create-as osp-compute0 preprovisioned
 ----
 
-Set SSH key
+Copier les clés SSH
 
 [source,bash,role=execute]
 ----
@@ -128,12 +130,10 @@ scp /root/.ssh/id_rsa root@192.168.123.100:/root/.ssh/id_rsa_compute
 scp /root/.ssh/id_rsa.pub root@192.168.123.100:/root/.ssh/id_rsa_compute.pub
 ----
 
-WARNING: This might error initially because of unknown hosts file.
-Retry to make sure both files are copied.
 
-=== Finish the Dataplane
+=== Terminer le plan de données
 
-Connect to the *bastion* server (Remember that bastion password is *redhat*):
+Connectez-vous au serveur *bastion* (n'oubliez pas que le mot de passe du bastion est *redhat*) :
 
 [source,bash,role=execute]
 ----
@@ -141,19 +141,19 @@ sudo -i
 ssh root@192.168.123.100
 ----
 
-.Sample Output
+.Exemple de sortie
 ----
 [root@ocp4-bastion ~] #
 ----
 
-Change to Lab Repo
+Changer le répertoire 
 
 [source,bash,role=execute]
 ----
 cd ~/labrepo/content/files
 ----
 
-Create Secret for ansible connection and nova migration of virtual machines
+Créer un secret pour la connexion ansible et la migration nova des machines virtuelles
 
 [source,bash,role=execute]
 ----
@@ -162,13 +162,18 @@ ssh-keygen -f ./id -t ecdsa-sha2-nistp521 -N ''
 oc create secret generic nova-migration-ssh-key --from-file=ssh-privatekey=id --from-file=ssh-publickey=id.pub -n openstack -o yaml | oc apply -f-
 ----
 
-Create a secret for the subscription manager and a secret for the Red Hat registry:
+Créez un secret pour subscription-manager et un secret pour le registre Red Hat. Vous devez avoir un login sur notre portail.  
 
+SECRET POUR SUBSCRIPTION-MANAGER
+
+Remplacer les information vi bas par votre nom d'utilisateur et votre mot de passe Red Hat. 
 [source,bash,role=execute]
 ----
 echo -n "your_username" | base64
 echo -n "your_password" | base64
 ----
+
+Remplacez dans la prochaine commande, en utilisant votre nom d'usager et mot de passe encrypté, la section data comme identifié 
 
 [source,bash,role=execute]
 ----
@@ -183,18 +188,16 @@ data:
 EOF
 ----
 
-Create a secret for the subscription manager and a secret for the Red Hat registry:
+SECRET POUR REGISTRE REDHAT
 
-[IMPORTANT]
-
-Add your username and password
+Indiquez votre nom d'utilisateur et votre mot de passe (non-encrypté) dans les champs <username> et <password> de la commande suivante :  
 
 [source,bash,role=execute]
 ----
 oc create secret generic redhat-registry --from-literal edpm_container_registry_logins='{"registry.redhat.io": {"<username>": "<password>"}}' -n openstack
 ----
 
-Deploy the Dataplane
+Déployer le plan de données
 
 [source,bash,role=execute]
 ----
@@ -202,47 +205,44 @@ oc apply -f osp-ng-dataplane-node-set-deploy.yaml
 oc apply -f osp-ng-dataplane-deployment.yaml
 ----
 
-You can view the Ansible logs while the deployment executes:
-
+Vous pouvez afficher les journaux Ansible pendant l'exécution du déploiement. Il se peut que la commande vous retourne un erreur comme le démmarage de l'exécution du playbook peut prendre quelques secondes à démarrer, repéter la commande au besoin 
 [source,bash,role=execute]
 ----
 oc logs -l app=openstackansibleee -f --max-log-requests 10
 ----
 
-.Sample Output
+.Exemple de sortie
 ----
 (...)
 PLAY RECAP *********************************************************************
 edpm-compute-0             : ok=53   changed=26   unreachable=0    failed=0    skipped=54   rescued=0    ignored=0
 ----
 
-Ctrl-C to exit.
+Vérifiez que le plan de données est déployé.
 
-Verify that the data plane is deployed.
-
-NOTE: This takes several minutes.
+REMARQUE : Cela prend plusieurs minutes (et vraiment plusieurs minutes!).
 
 [source,bash,role=execute]
 ----
-oc get openstackdataplanedeployment
+oc get openstackdataplanedeployment -w 
 ----
 
-Repeat the query until you see the following:
+Répétez la requête jusqu'à ce que vous voyiez ce qui suit :
 
-.Sample Output
+.Exemple de sortie
 ----
 NAME                  STATUS   MESSAGE
 openstack-edpm-ipam   True     Setup Complete
 ----
+
+CTRL + C pour quitter
 
 [source,bash,role=execute]
 ----
 oc get openstackdataplanenodeset
 ----
 
-Repeat the query until you see the following:
-
-.Sample Output
+.Exemple de sortie
 ----
 NAME                  STATUS   MESSAGE
 openstack-edpm-ipam   True     NodeSet Ready
