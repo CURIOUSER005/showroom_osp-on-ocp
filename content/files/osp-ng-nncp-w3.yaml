@@ -75,7 +75,10 @@ spec:
       mtu: 1500
       name: enp1s0
       state: up
-      type: ethernet
+      type: vlan
+      vlan:
+        base-iface: enp1s0
+        id: 26
     - description: Configuring enp1s0
       ipv4:
         address:
@@ -88,7 +91,10 @@ spec:
       mtu: 1500
       name: enp1s0
       state: up
-      type: ethernet
+      type: vlan
+      vlan:
+        base-iface: enp1s0
+        id: 34
   nodeSelector:
     kubernetes.io/hostname: worker-2 
     node-role.kubernetes.io/worker: ""
