@@ -34,3 +34,21 @@ metadata:
 spec:
   addresses:
   - 172.19.0.80-172.19.0.90
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  namespace: metallb-system
+  name: designate
+spec:
+  addresses:
+  - 172.26.0.80-172.26.0.90
+--- 
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  namespace: metallb-system
+  name: designateext
+spec:
+  addresses:
+  - 172.34.0.80-172.34.0.90

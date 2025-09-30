@@ -35,12 +35,6 @@ spec:
     managementNetwork: ctlplane
     ansible:
       ansibleUser: root
-      ansibleVarsFrom:
-      - prefix: subscription_manager_
-        secretRef:
-          name: subscription-manager
-      - secretRef:
-          name: redhat-registry
       ansibleVars:
          edpm_network_config_template: |
           ---
@@ -127,7 +121,6 @@ spec:
          enable_debug: false
          edpm_bootstrap_release_version_package: []
          edpm_bootstrap_command: |
-           subscription-manager register --username "{{ subscription_manager_username }}" --password "{{ subscription_manager_password }}"
            sudo subscription-manager release --set=9.4
            sudo subscription-manager repos --disable=*
            sudo subscription-manager repos --enable=rhel-9-for-x86_64-baseos-eus-rpms --enable=rhel-9-for-x86_64-appstream-eus-rpms --enable=rhel-9-for-x86_64-highavailability-eus-rpms --enable=fast-datapath-for-rhel-9-x86_64-rpms --enable=rhoso-18.0-for-rhel-9-x86_64-rpms --enable=rhceph-7-tools-for-rhel-9-x86_64-rpms

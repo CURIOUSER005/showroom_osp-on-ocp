@@ -17,8 +17,8 @@ spec:
   capacity:
     storage: 100Gi
   nfs:
-    path: /nfs/pv1
-    server: 192.168.123.100
+    path: /home/nfs/pv1
+    server: 192.168.123.1
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -34,8 +34,8 @@ spec:
   capacity:
     storage: 100Gi
   nfs:
-    path: /nfs/pv2
-    server: 192.168.123.100
+    path: /home/nfs/pv2
+    server: 192.168.123.1
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -51,8 +51,8 @@ spec:
   capacity:
     storage: 100Gi
   nfs:
-    path: /nfs/pv3
-    server: 192.168.123.100
+    path: /home/nfs/pv3
+    server: 192.168.123.1
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -68,8 +68,8 @@ spec:
   capacity:
     storage: 100Gi
   nfs:
-    path: /nfs/pv4
-    server: 192.168.123.100
+    path: /home/nfs/pv4
+    server: 192.168.123.1
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -85,8 +85,8 @@ spec:
   capacity:
     storage: 100Gi
   nfs:
-    path: /nfs/pv5
-    server: 192.168.123.100
+    path: /home/nfs/pv5
+    server: 192.168.123.1
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -102,8 +102,8 @@ spec:
   capacity:
     storage: 100Gi
   nfs:
-    path: /nfs/pv6
-    server: 192.168.123.100
+    path: /home/nfs/pv6
+    server: 192.168.123.1
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -119,8 +119,8 @@ spec:
   capacity:
     storage: 100Gi
   nfs:
-    path: /nfs/pv7
-    server: 192.168.123.100
+    path: /home/nfs/pv7
+    server: 192.168.123.1
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -136,8 +136,8 @@ spec:
   capacity:
     storage: 100Gi
   nfs:
-    path: /nfs/pv8
-    server: 192.168.123.100
+    path: /home/nfs/pv8
+    server: 192.168.123.1
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -153,8 +153,8 @@ spec:
   capacity:
     storage: 100Gi
   nfs:
-    path: /nfs/pv9
-    server: 192.168.123.100
+    path: /home/nfs/pv9
+    server: 192.168.123.1
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -170,8 +170,8 @@ spec:
   capacity:
     storage: 100Gi
   nfs:
-    path: /nfs/pv10
-    server: 192.168.123.100
+    path: /home/nfs/pv10
+    server: 192.168.123.1
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem

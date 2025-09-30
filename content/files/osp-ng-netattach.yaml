@@ -81,6 +81,46 @@ spec:
 apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
+  name: designate
+  namespace: openstack
+spec:
+  config: |
+    {
+      "cniVersion": "0.3.1",
+      "name": "designate",
+      "type": "macvlan",
+      "master": "enp1s0.26",
+      "ipam": {
+        "type": "whereabouts",
+        "range": "172.26.0.0/24",
+        "range_start": "172.26.0.30",
+        "range_end": "172.26.0.70"
+      }
+    }
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: designateext
+  namespace: openstack
+spec:
+  config: |
+    {
+      "cniVersion": "0.3.1",
+      "name": "designateext",
+      "type": "macvlan",
+      "master": "enp1s0.34",
+      "ipam": {
+        "type": "whereabouts",
+        "range": "172.34.0.0/24",
+        "range_start": "172.34.0.30",
+        "range_end": "172.34.0.70"
+      }
+    }
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
   name: external
   namespace: openstack
 spec:
@@ -89,7 +129,7 @@ spec:
       "cniVersion": "0.3.1",
       "name": "external",
       "type": "macvlan",
-      "master": "enp3s0",
+      "master": "enp2s0",
       "ipam": {
         "type": "whereabouts",
         "range": "192.168.123.0/24",

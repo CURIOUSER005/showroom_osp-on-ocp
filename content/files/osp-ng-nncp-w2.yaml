@@ -1,7 +1,7 @@
 apiVersion: nmstate.io/v1
 kind: NodeNetworkConfigurationPolicy
 metadata:
-  name: osp-enp1s0-worker-ocp4-worker2
+  name: osp-enp1s0-worker-ocp4-worker1
 spec:
   desiredState:
     interfaces:
@@ -63,6 +63,32 @@ spec:
       name: enp1s0
       state: up
       type: ethernet
+    - description: Configuring enp1s0
+      ipv4:
+        address:
+        - ip: 172.26.0.11
+          prefix-length: 24
+        enabled: true
+        dhcp: false
+      ipv6:
+        enabled: false
+      mtu: 1500
+      name: enp1s0
+      state: up
+      type: ethernet
+    - description: Configuring enp1s0
+      ipv4:
+        address:
+        - ip: 172.34.0.11
+          prefix-length: 24
+        enabled: true
+        dhcp: false
+      ipv6:
+        enabled: false
+      mtu: 1500
+      name: enp1s0
+      state: up
+      type: ethernet
   nodeSelector:
-    kubernetes.io/hostname: ocp4-worker2.aio.example.com 
+    kubernetes.io/hostname: worker-1 
     node-role.kubernetes.io/worker: ""
