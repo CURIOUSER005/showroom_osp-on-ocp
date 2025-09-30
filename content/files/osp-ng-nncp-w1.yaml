@@ -73,7 +73,7 @@ spec:
       ipv6:
         enabled: false
       mtu: 1500
-      name: enp1s0
+      name: enp1s0.26
       state: up
       type: vlan
       vlan:
@@ -89,7 +89,7 @@ spec:
       ipv6:
         enabled: false
       mtu: 1500
-      name: enp1s0
+      name: enp1s0.34
       state: up
       type: vlan
       vlan:
