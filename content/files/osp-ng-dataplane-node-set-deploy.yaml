@@ -16,7 +16,7 @@ spec:
         hostName: edpm-compute-0
         ansible:
           ansibleHost: 172.22.0.100
-          fqdn_internal_api: edpm-compute-0.aio.example.com
+          fqdn_internal_api: edpm-compute-0.rhosopnq.com
         networks:
         - name: ctlplane
           subnetName: subnet1
@@ -91,7 +91,7 @@ spec:
           # considered EDPM network defaults (for all computes).
          ctlplane_host_routes: []
          ctlplane_subnet_cidr: 24
-         dns_search_domains: aio.example.com
+         dns_search_domains: rhosopnq.com
          ctlplane_vlan_id: 1
          ctlplane_mtu: 1500
          external_mtu: 1500
